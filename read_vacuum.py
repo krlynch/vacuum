@@ -218,7 +218,7 @@ try:
     which_chamber = int(sys.argv[1])
     if which_chamber == -1:
     	# test mode!
-    	print "RUNNING IN TEST MODE; NO REAL DATA FOLLOWS"
+    	sys.stderr.write("RUNNING IN TEST MODE; NO REAL DATA FOLLOWS")
     	pirani = MockPirani("TEST_PIRANI", 9600, 8, 'N', 1)
     	capacitance = MockCapacitance("TEST_CAPACITANCE", 9600, 8, 'N', 1)
     else:

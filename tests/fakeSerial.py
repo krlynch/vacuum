@@ -13,7 +13,6 @@ class FakeSerial:
 	# I never thought I'd miss Java interfaces
 
 	def __init__(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None):
-		# if port is given, open input file, save input file handle
 		self.timeout = timeout
 		if self.timeout is None:
 			self.timeout = 30 # sanity
@@ -42,7 +41,6 @@ class FakeSerial:
 
 	def read(self, size=1):
 		# read *size* bytes from the file
-		# if not enough bytes, block until either timeout is reached or more bytes appear
 		# clear last command when done
 		out = ""
 		if self.lastCmd is None or self.lastCmd not in self.cmdToFile:
@@ -89,13 +87,12 @@ class FakeSerial:
 	def send_break(self):
 		pass
 
-	# TODO: handle the rest of the methods, so we don;t have any weird unexpected behavior here!
+	# TODO: handle the rest of the methods, so we don't have any weird unexpected behavior here!
 
 
 class MockPirani(FakeSerial):
 
 	def __init__(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None):
-		# if port is given, open input file, save input file handle
 		self.timeout = timeout
 		if self.timeout is None:
 			self.timeout = 30 # sanity
@@ -117,7 +114,6 @@ class MockPirani(FakeSerial):
 
 class MockCapacitance(FakeSerial):
 	def __init__(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None):
-		# if port is given, open input file, save input file handle
 		self.timeout = timeout
 		if self.timeout is None:
 			self.timeout = 30 # sanity
