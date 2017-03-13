@@ -62,6 +62,7 @@ class FakeSerial:
 	def inWaiting(self):
 		# reads how many bytes are waiting in the input buffer -- depends on current command sent
 		if self.lastCmd is None or self.lastCmd not in self.cmdToDataLength:
+			print "no such command as ", self.lastCmd
 			return 0
 		else:
 			return self.cmdToDataLength[self.lastCmd]
