@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, serial, sys, signal, select, time, datetime
+from tests.fakeSerial import MockPirani, MockCapacitance
 
 pirani_port_templ = "/dev/ttyUSB%1d"
 capacitance_port_templ = "/dev/ttyUSB%1d"
@@ -212,30 +213,38 @@ try:
     sys.stderr.write("Starting up ....\n")
     sys.stderr.flush()
     # gross, icky hack!
+    pirani = None
+    capacitance = None
     which_chamber = int(sys.argv[1])
-    if which_chamber==1:
-        pirani_port = pirani_port_templ % (0)
-        capacitance_port = capacitance_port_templ % (1)
-    elif which_chamber==2:
-        pirani_port = pirani_port_templ % (2)
-        capacitance_port = capacitance_port_templ % (3)
-        capacitance_fullscale = [1000.,0.02]
-        capacitance_minscale = [1e-1, 4.e-7]
+    if which_chamber == -1:
+    	# test mode!
+    	sys.stderr.write("RUNNING IN TEST MODE; NO REAL DATA FOLLOWS")
+    	pirani = MockPirani("TEST_PIRANI", 9600, 8, 'N', 1)
+    	capacitance = MockCapacitance("TEST_CAPACITANCE", 9600, 8, 'N', 1)
     else:
-        raise no_system(which_chamber)
-    pirani = serial.Serial(pirani_port, 9600, 8, 'N', 1)
-    if pirani == None:
-        raise no_serial(pirani_port)
-    capacitance = serial.Serial(capacitance_port, 9600, 8, 'N', 1)
-    if capacitance == None:
-        raise no_serial(capacitance_port)
-    flush_serial(pirani)
-    flush_serial(capacitance)
+    	if which_chamber==1:
+        	pirani_port = pirani_port_templ % (0)
+        	capacitance_port = capacitance_port_templ % (1)
+    	elif which_chamber==2:
+        	pirani_port = pirani_port_templ % (2)
+        	capacitance_port = capacitance_port_templ % (3)
+        	capacitance_fullscale = [1000.,0.02]
+        	capacitance_minscale = [1e-1, 4.e-7]
+    	else:
+        	raise no_system(which_chamber)
+    	pirani = serial.Serial(pirani_port, 9600, 8, 'N', 1)
+    	if pirani == None:
+        	raise no_serial(pirani_port)
+    	capacitance = serial.Serial(capacitance_port, 9600, 8, 'N', 1)
+    	if capacitance == None:
+        	raise no_serial(capacitance_port)
+    	flush_serial(pirani)
+    	flush_serial(capacitance)
     
-    sys.stderr.write("\tOpened %s for Pirani Gauge\n" % pirani_port)
-    sys.stderr.flush()
-    sys.stderr.write("\tOpened %s for Capacitance Manometers\n" % capacitance_port)
-    sys.stderr.flush()
+    	sys.stderr.write("\tOpened %s for Pirani Gauge\n" % pirani_port)
+    	sys.stderr.flush()
+    	sys.stderr.write("\tOpened %s for Capacitance Manometers\n" % capacitance_port)
+    	sys.stderr.flush()
 
     oname = "vacuum-%s.csv" % isonow()
     outfile = open(oname, 'w')
