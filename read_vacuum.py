@@ -189,7 +189,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, handleExit)
 
     reader = setUp(int(sys.argv[1]))
-    delaytime = 10.0 # inter-measurement delay time
+    delaytime = 9.0 # inter-measurement delay time
     try:
         # start data collection
         timeAxis = []
@@ -218,13 +218,8 @@ if __name__ == '__main__':
             plt.title('Pressure in chamber')
             plt.legend(lines, ('Pirani ({0})'.format(reader.pirani_units), 'capacitance 0 ({0})'.format(reader.capacitance_units), 'capacitance 1 ({0})'.format(reader.capacitance_units)))
             plt.draw()
-            plt.pause(0.001)
+            plt.pause(delaytime)
 
-
-            if select.select([sys.stdin],[],[],delaytime)[0]:
-                readlines(sys.stdin)
-            else:
-                continue
     except NameError:
         None
     except SystemExit:
