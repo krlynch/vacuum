@@ -3,6 +3,7 @@
 import os, serial, sys, signal, select, time, datetime
 from tests.fakeSerial import MockPirani, MockCapacitance
 from pressure_gauges import Pirani, Capacitance
+import matplotlib.pyplot as plt
 
 
 
@@ -28,6 +29,8 @@ class VacuumReader(object):
         self.debug = debug
         self.capacitance_fullscale = [1000.,1.]
         self.capacitance_minscale = [1e-1, 1.e-4]
+        self.pirani_units = "torr"
+        self.capacitance_units = "torr"
         self.starttime = None
 
     def setUpOutfile(self, filename):
@@ -151,6 +154,8 @@ def setUp(chamberNum):
 
     pirani_units = reader.pirani.getUnits()
     capacitance_units = reader.capacitance.getUnits()
+    reader.pirani_units = pirani_units
+    reader.capacitance_units = capacitance_units
     #capacitance_fullscale = read_capacitance_fullscale()
     print(reader.capacitance.getFullscale())
     ostr = "# Gauge Units: %s %s\n" % (pirani_units,capacitance_units)
@@ -187,11 +192,35 @@ if __name__ == '__main__':
     delaytime = 10.0 # inter-measurement delay time
     try:
         # start data collection
+        timeAxis = []
+        piraniVals = []
+        capVals_1 = []
+        capVals_2 = []
+        figure = plt.figure(1)
+        plt.ion()
+        plt.show()
+
         while True:
             pirani_val = reader.pirani.getPressure()[0]
             capacitance_val = reader.capacitance.getPressure()
-            ostr = "%s\t%d\t%.02e\t%.02e\t%.02e\n" % (reader.isonow(), reader.timeElapsed(), pirani_val, capacitance_val[0], capacitance_val[1])
+            timeT = reader.timeElapsed()
+            ostr = "%s\t%d\t%.02e\t%.02e\t%.02e\n" % (reader.isonow(), timeT, pirani_val, capacitance_val[0], capacitance_val[1])
             reader.teeWrite(ostr)
+
+            timeAxis.append(timeT)
+            piraniVals.append(pirani_val)
+            capVals_1.append(capacitance_val[0])
+            capVals_2.append(capacitance_val[1])
+            figure.clear()
+            lines = plt.plot(timeAxis, piraniVals, timeAxis, capVals_1, timeAxis, capVals_2)
+            plt.xlabel('Time (seconds)')
+            plt.ylabel('Pressure')
+            plt.title('Pressure in chamber')
+            plt.legend(lines, ('Pirani ({0})'.format(reader.pirani_units), 'capacitance 0 ({0})'.format(reader.capacitance_units), 'capacitance 1 ({0})'.format(reader.capacitance_units)))
+            plt.draw()
+            plt.pause(0.001)
+
+
             if select.select([sys.stdin],[],[],delaytime)[0]:
                 readlines(sys.stdin)
             else:
