@@ -12,12 +12,18 @@ class ack_error(Exception):
         return repr("Bad ack: %s" % self.ack)
 
 class PressureGauge(object):
+    """ Base class for interacting with the pressure gauges via serial ports.
+    Not intended to be used on its own. Use its subclasses Pirani or Capacitance instead """
 
     unitsCommand = "none"
     pressureCommand = "none"
     waittime = 0.05
 
     def __init__(self, serialInstance, debug):
+        """ Constructor
+        arguments:
+        serialInstance -- either an instance of pySerial's serial.serial, or a subclass of FakeSerial (MockPirani or MockCapacitance) 
+        debug -- true to print debugging statements, false otherwise"""
         self.debug = debug
         self.innerSerial = serialInstance
 

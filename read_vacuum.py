@@ -7,11 +7,19 @@ from pressure_gauges import Pirani, Capacitance
 
 
 class VacuumReader(object):
+    """ Stores information about the connections to the pressure gauges and the file to write pressure data to.
+    Utility methods for setting up connections, cleaning them up, keeping time, and writing to the data file. 
+    To interact with the gauges themselves, use the variables 'pirani' and 'capacitance'"""
+
     pirani_port_templ = "/dev/ttyUSB%1d"
     capacitance_port_templ = "/dev/ttyUSB%1d"
     isoformat = "%Y-%m-%d-%H-%M-%S"
 
     def __init__(self, chamber, debug):
+        """ Establishes if you are in test mode, and if you are debugging.
+        arguments: 
+        chamberNum -- 1, 2, or -1. -1 indicates test mode
+        debug -- True to print debug statements, False othrwise """
         self.pirani = None
         self.capacitance = None
         self.outfile = None
@@ -23,9 +31,13 @@ class VacuumReader(object):
         self.starttime = None
 
     def setUpOutfile(self, filename):
+        """ Opens the specified file; saves a filehandle in self.outfile """
         self.outfile = open(filename, 'w')
 
     def setUpPirani(self):  
+        """ Creates a connection to the Pirani gauge via pySerial, unless in test mode.
+        In test mode, creates a connection to a mockup pirani gauge using MockPirani.
+        The Pirani instance can be accessed via self.pirani """
         pirani_serial = None 
         if self.testMode:
             pirani_serial = MockPirani("TEST_PIRANI", 9600, 8, 'N', 1)
@@ -41,6 +53,9 @@ class VacuumReader(object):
         self.pirani.flush()
 
     def setUpCapacitance(self):
+        """ Creates a connection to the capacitance gause via pySerial, unless in test mode.
+        In test mode, creates a connection to a mockup capacitance gauge using MockCapacitance.
+        The Capacitance instance can be accessed via self.capacitance """
         cap_serial = None 
         if self.testMode:
             cap_serial = MockCapacitance("TEST_CAP", 9600, 8, 'N', 1)
@@ -80,12 +95,14 @@ class VacuumReader(object):
 
     
     def teeWrite(self, ostr):
+        """ Write string ostr to both the output file and stdout """
         self.outfile.write(ostr)
         self.outfile.flush()
         sys.stdout.write(ostr)
         sys.stdout.flush()
 
     def closeAll(self):
+        """ Closes output file, and connections to both gauges """
         if self.outfile != None:
             sys.stderr.write("\tClosing output file ....\n")
             sys.stderr.flush()
@@ -101,12 +118,16 @@ class VacuumReader(object):
             self.capacitance.close()
 
 
-
-
-
-
-
 def setUp(chamberNum):
+    """ All setup necessary to begin reading the pressure.
+
+    arguments: 
+    chamberNum -- (1, 2, or -1. -1 indicates test mode)
+
+    Creates an instance of VacuumReader, establishes connections to pressure gauges (real or mock), creates an output file.
+    Writes header data (column names, etc) for the output file, gets the units of measurement from the gauges, and sets the 
+    measurement start time.
+    RETURNS: the vacuumReader object """
     
     reader = VacuumReader(chamberNum, False)
     reader.setUpPirani()
@@ -161,7 +182,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, handleExit)
     signal.signal(signal.SIGQUIT, handleExit)
     signal.signal(signal.SIGTERM, handleExit)
-    
+
     reader = setUp(int(sys.argv[1]))
     delaytime = 10.0 # inter-measurement delay time
     try:
