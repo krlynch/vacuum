@@ -6,11 +6,9 @@ from sys import stderr
 
 class FakeSerial:
 
-	# Base class for mock versions of serial.Serial
-	# Does not inherit from serial.Serial, merely imitates it
-	# This DOES NOT behave in a really similar way to reak hardware serial ports; it is built to
-	# give you canned test data.
-	# I never thought I'd miss Java interfaces
+	""" Base class for mock versions of serial.Serial.
+	Does not inherit from serial.Serial, merely imitates it.
+	This DOES NOT behave in a really similar way to real hardware serial ports; it is built to give you canned test data. """ 
 
 	def __init__(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None):
 		self.timeout = timeout
@@ -62,6 +60,7 @@ class FakeSerial:
 	def inWaiting(self):
 		# reads how many bytes are waiting in the input buffer -- depends on current command sent
 		if self.lastCmd is None or self.lastCmd not in self.cmdToDataLength:
+			stderr.write("No such command as "+str(self.lastCmd)+"\n")
 			return 0
 		else:
 			return self.cmdToDataLength[self.lastCmd]
