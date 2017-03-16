@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+""" 
+Code for interacting with pressure gauges. Requires the computer to communicate with the gauge via a serial port.
+
+Initialize the subclasses of PressureGauge with an instance of serial.Serial, connected to the gauge itself.
+For testing purposes, initialize with an instance of MockPirani, MockCapacitance, or other subclass of MockSerial.
+
+To extend to more gauges:
+* Create a new subclass of PressureGauge
+* In your subclass, override the class vaiables `unitsCommand` and `pressureCommand` with the commands appropriate for that gauge
+* In the subclass, override _sendCmdGetResp(self, cmd) with the correct functionality to request and receive data from the gauge
+* If your gauge can tell you more than just units and pressure, create new methods in your subclass that use _sendCmdGetResp(self, cmd) to get that information
+ """
 
 from sys import stderr
 from serial import Serial
@@ -12,15 +24,18 @@ class ack_error(Exception):
         return repr("Bad ack: %s" % self.ack)
 
 class PressureGauge(object):
-    """ Base class for interacting with the pressure gauges via serial ports.
-    Not intended to be used on its own. Use its subclasses Pirani or Capacitance instead """
+    """ 
+    Base class for interacting with the pressure gauges via serial ports.
+    Not intended to be used on its own. Use its subclasses Pirani or Capacitance instead 
+    """
 
     unitsCommand = "none"
     pressureCommand = "none"
     waittime = 0.05
 
     def __init__(self, serialInstance, debug):
-        """ Constructor
+        """ 
+        Constructor
         arguments:
         serialInstance -- either an instance of pySerial's serial.serial, or a subclass of FakeSerial (MockPirani or MockCapacitance) 
         debug -- true to print debugging statements, false otherwise"""
@@ -39,6 +54,14 @@ class PressureGauge(object):
         return self._sendCmdGetResp(self.unitsCommand)
 
     def getPressure(self):
+        """ 
+        Requests the current pressure measurement from the gauge(s).
+
+        Returns -- a LIST of floats
+
+        If this object only communicates with one physical gauge, the list will have one element.
+        Otherwise, there will be one element per gauge.
+        """
         raw = self._sendCmdGetResp(self.pressureCommand)
         return self._cleanPressureFormat(raw)
 
@@ -55,6 +78,10 @@ class PressureGauge(object):
 
 
 class Pirani(PressureGauge):
+    """
+    Class for interacting with a Pirani gauge. Initialize either with serial.Serial or MockPirani.
+    Expects to be connected to a single gauge.
+    """
 
     pressureCommand = '@253PR1?;FF'
     unitsCommand = '@253U?;FF'
@@ -93,6 +120,10 @@ class Pirani(PressureGauge):
 
 
 class Capacitance(PressureGauge):
+    """
+    Class for interacting with a capacitance gauge. Initialize either with serial.Serial or MockCapacitance.
+    Expects to be connected to a pair of gauges.
+    """
 
     pressureCommand = 'p'
     unitsCommand = 'u'
