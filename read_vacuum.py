@@ -188,6 +188,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGQUIT, handleExit)
     signal.signal(signal.SIGTERM, handleExit)
 
+    sys.stdout.write("VACUUM READER\n***********\nPressure data will be live-plotted. Please save the plot manually before exiting vacuum_reader\n**********\n")
     reader = setUp(int(sys.argv[1]))
     delaytime = 9.0 # inter-measurement delay time
     try:
