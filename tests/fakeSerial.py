@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+"""
+Classes that imitate a serial connection, for testing purposes.
+Initialize with the same arguments you would use for serial.Serial.
+Does not fully implement all serial methods yet, but currently does enough for read_vacuum.
+
+Currently, can imitate a serial connection to a single Pirani gauge or two capacitance gauges.
+
+To add a new gauge:
+* Create a new subclass of FakeSerial
+* Override the __init__() method to set any internal data you will need
+* For each piece of information a gauge can return (for example, pressure and units):
+    * Create a file containing correctly-formatted responses to requests for that information
+    * In __init__(), place the command that gets you that information as a key in self.cmdToFile with the value being a filehandle to that file
+    * in __init__(), place the command that gets you that information as a key in self.cmdToDataLength, and the length of the respone as the value
+"""
 
 import time, serial, os, sys
 from sys import stderr
@@ -60,7 +75,6 @@ class FakeSerial:
 	def inWaiting(self):
 		# reads how many bytes are waiting in the input buffer -- depends on current command sent
 		if self.lastCmd is None or self.lastCmd not in self.cmdToDataLength:
-			stderr.write("No such command as "+str(self.lastCmd)+"\n")
 			return 0
 		else:
 			return self.cmdToDataLength[self.lastCmd]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, serial, sys, signal, select, time, datetime
+import os, serial, sys, signal, time, datetime
 from tests.fakeSerial import MockPirani, MockCapacitance
 from pressure_gauges import Pirani, Capacitance
 import matplotlib.pyplot as plt
@@ -8,19 +8,23 @@ import matplotlib.pyplot as plt
 
 
 class VacuumReader(object):
-    """ Stores information about the connections to the pressure gauges and the file to write pressure data to.
+    """ 
+    Stores information about the connections to the pressure gauges and the file to write pressure data to.
     Utility methods for setting up connections, cleaning them up, keeping time, and writing to the data file. 
-    To interact with the gauges themselves, use the variables 'pirani' and 'capacitance'"""
+    To interact with the gauges themselves, use the variables 'pirani' and 'capacitance'
+    """
 
     pirani_port_templ = "/dev/ttyUSB%1d"
     capacitance_port_templ = "/dev/ttyUSB%1d"
     isoformat = "%Y-%m-%d-%H-%M-%S"
 
     def __init__(self, chamber, debug):
-        """ Establishes if you are in test mode, and if you are debugging.
+        """ 
+        Establishes if you are in test mode, and if you are debugging.
         arguments: 
         chamberNum -- 1, 2, or -1. -1 indicates test mode
-        debug -- True to print debug statements, False othrwise """
+        debug -- True to print debug statements, False otherwise 
+        """
         self.pirani = None
         self.capacitance = None
         self.outfile = None
@@ -38,9 +42,11 @@ class VacuumReader(object):
         self.outfile = open(filename, 'w')
 
     def setUpPirani(self):  
-        """ Creates a connection to the Pirani gauge via pySerial, unless in test mode.
+        """ 
+        Creates a connection to the Pirani gauge via pySerial, unless in test mode.
         In test mode, creates a connection to a mockup pirani gauge using MockPirani.
-        The Pirani instance can be accessed via self.pirani """
+        The Pirani instance can be accessed via self.pirani 
+        """
         pirani_serial = None 
         if self.testMode:
             pirani_serial = MockPirani("TEST_PIRANI", 9600, 8, 'N', 1)
@@ -56,9 +62,11 @@ class VacuumReader(object):
         self.pirani.flush()
 
     def setUpCapacitance(self):
-        """ Creates a connection to the capacitance gause via pySerial, unless in test mode.
+        """ 
+        Creates a connection to the capacitance gause via pySerial, unless in test mode.
         In test mode, creates a connection to a mockup capacitance gauge using MockCapacitance.
-        The Capacitance instance can be accessed via self.capacitance """
+        The Capacitance instance can be accessed via self.capacitance 
+        """
         cap_serial = None 
         if self.testMode:
             cap_serial = MockCapacitance("TEST_CAP", 9600, 8, 'N', 1)
@@ -121,18 +129,20 @@ class VacuumReader(object):
             self.capacitance.close()
 
 
-def setUp(chamberNum):
-    """ All setup necessary to begin reading the pressure.
+def setUp(reader):
+    """ 
+    Utility method -- sets up everything needed to run vacuum_reader.py as a standalone program.
 
     arguments: 
-    chamberNum -- (1, 2, or -1. -1 indicates test mode)
+    reader -- an instance of VacuumReader
 
     Creates an instance of VacuumReader, establishes connections to pressure gauges (real or mock), creates an output file.
     Writes header data (column names, etc) for the output file, gets the units of measurement from the gauges, and sets the 
     measurement start time.
-    RETURNS: the vacuumReader object """
+
+    returns: the vacuumReader object, now fully set up
+    """
     
-    reader = VacuumReader(chamberNum, False)
     reader.setUpPirani()
     reader.setUpCapacitance()
 
@@ -157,7 +167,7 @@ def setUp(chamberNum):
     reader.pirani_units = pirani_units
     reader.capacitance_units = capacitance_units
     #capacitance_fullscale = read_capacitance_fullscale()
-    print(reader.capacitance.getFullscale())
+    #print(reader.capacitance.getFullscale())
     ostr = "# Gauge Units: %s %s\n" % (pirani_units,capacitance_units)
     reader.teeWrite(ostr)
 
@@ -183,15 +193,20 @@ class no_system(Exception):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        sys.stdout.write("Usage: `python vacuum_reader.py chamberNum` # chamberNum may be 1, 2, or -1 (-1 indicates test mode)\n")
+        sys.exit()
+
     signal.signal(signal.SIGHUP, handleExit)
     signal.signal(signal.SIGINT, handleExit)
     signal.signal(signal.SIGQUIT, handleExit)
     signal.signal(signal.SIGTERM, handleExit)
 
     sys.stdout.write("VACUUM READER\n***********\nPressure data will be live-plotted. Please save the plot manually before exiting vacuum_reader\n**********\n")
-    reader = setUp(int(sys.argv[1]))
+    reader = VacuumReader(int(sys.argv[1]), False)
     delaytime = 9.0 # inter-measurement delay time
     try:
+        reader = setUp(reader)
         # start data collection
         timeAxis = []
         piraniVals = []
