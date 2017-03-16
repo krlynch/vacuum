@@ -3,5 +3,5 @@
 To run in test mode:
 
 ```
-python read_vacuum -1
+python read_vacuum.py -1
 ```
